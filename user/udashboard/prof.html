@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>User Profile</title>
+    
+    <!-- Meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- App CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/portal.css"> <!-- For your existing portal styling -->
+
+    <!-- SweetAlert CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: url('Trash.png') no-repeat center center/cover;
+        }
+
+        .glass-container {
+            backdrop-filter: blur(10px) saturate(150%);
+            -webkit-backdrop-filter: blur(10px) saturate(150%);
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            color: #fff;
+        }
+
+        .glass-container h2 {
+            color: #ffffff;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        label {
+            color: #ffffff;
+        }
+
+        .form-control:disabled {
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .btn {
+            background-color: #006400;
+            color: white;
+        }
+
+        .btn:hover {
+            background-color: #004c00;
+        }
+
+    </style>
+</head>
+
+<body>
+    <div class="glass-container">
+        <h2>User Profile</h2>
+        <form id="ProfileForm">
+            <div class="mb-3">
+                <label for="profile-email" class="form-label">Email</label>
+                <input id="emailInp" type="email" class="form-control" disabled>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="profile-fname" class="form-label">First Name</label>
+                    <input id="firstnameInp" type="text" class="form-control" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="profile-lname" class="form-label">Last Name</label>
+                    <input id="lastnameInp" type="text" class="form-control" required>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label for="profile-phone" class="form-label">Phone Number</label>
+                <input id="phoneInp" type="text" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label for="profile-password" class="form-label">Password</label>
+                <input id="passwordInp" type="password" class="form-control" required>
+            </div>
+            <div class="text-center">
+                <button type="submit" class="btn w-100">Save Changes</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Firebase & SweetAlert JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyDsLb-eGMbfvrYoG3z01If0c9vujRV9LOM",
+            authDomain: "solidwaste4c.firebaseapp.com",
+            projectId: "solidwaste4c",
+            storageBucket: "solidwaste4c.appspot.com",
+            messagingSenderId: "834201404220",
+            appId: "1:834201404220:web:0349e0100fd01aa2939439"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        let ProfileForm = document.getElementById('ProfileForm');
+        let FirstNameInp = document.getElementById('firstnameInp');
+        let LastNameInp = document.getElementById('lastnameInp');
+        let PhoneInp = document.getElementById('phoneInp');
+        let PasswordInp = document.getElementById('passwordInp');
+        let EmailInp = document.getElementById('emailInp');
+
+        window.onload = async () => {
+            const user = auth.currentUser;
+            if (user) {
+                const userId = user.uid;
+                const userDoc = await getDoc(doc(db, "Users", userId));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    FirstNameInp.value = userData.FirstName;
+                    LastNameInp.value = userData.LastName;
+                    PhoneInp.value = userData.ContactNumber;
+                    EmailInp.value = userData.Email;
+                }
+            }
+        };
+
+        let saveChanges = async (evt) => {
+            evt.preventDefault();
+
+            const user = auth.currentUser;
+            if (user) {
+                const userId = user.uid;
+
+                // Update Firestore data
+                await updateDoc(doc(db, "Users", userId), {
+                    FirstName: FirstNameInp.value,
+                    LastName: LastNameInp.value,
+                    ContactNumber: PhoneInp.value,
+                    Password: PasswordInp.value
+                });
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Profile Updated!',
+                    text: 'Your changes have been saved successfully.',
+                });
+            }
+        };
+
+        ProfileForm.addEventListener('submit', saveChanges);
+    </script>
+</body>
+</html>
